@@ -1,13 +1,14 @@
-import mongose from 'mongoose';
+import mongoose from 'mongoose';
 
-const postSchema = mongose.Schema({
+const postSchema = mongoose.Schema({
     title: String,
     description: String,
+    creatorName: String,
     createdBy: String,
     tags: [String],
     likes: {
-        type: Number,
-        default: 0
+        type: [String],
+        default: []
     },
     createdAt: {
         type: Date,
@@ -15,6 +16,6 @@ const postSchema = mongose.Schema({
     }
 });
 
-const PostModel = mongose.model('Posts', postSchema);
+const PostModel = mongoose.model('Posts', postSchema);
 
 export default PostModel;

@@ -12,7 +12,7 @@ export const getPosts = async (req, res) => {
 
 export const createPost = async (req, res) => {
     const post = req.body;
-    const newPost = PostModel(post)
+    const newPost = new PostModel({ ...post, createdBy: req.userId, createdAt: new Date().toISOString() });
     try {
         await newPost.save();
         res.status(201).json(newPost)
@@ -47,13 +47,20 @@ export const deletePost = async (req, res) => {
 }
 
 export const likePost = async (req, res) => {
-    const { id: _id } = req.params;
+    const { id } = req.params;
+    if(!req.userId) return res.status(401).json({ message: "Unauthorized"});
 
-    if(!mongoose.Types.ObjectId.isValid(_id)){
+    if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).send('Post with such id not found');
     }
 
-    const post = await PostModel.findById(_id);
-    const updatedPost = await PostModel.findByIdAndUpdate(_id, { likes: post.likes + 1 }, { new: true })
-    res.json(updatedPost);
+    const post = await PostModel.findById(id);
+    const index = post.likes.findIndex((id) => id === String(req.userId));
+    if(index === -1){
+        post.likes.push(req.userId);
+    } else {
+        post.likes = post.likes.filter((id) => id !== String(req.userId));
+    }
+    const updatedPost = await PostModel.findByIdAndUpdate(id, post, { new: true })
+    res.status(201).json(updatedPost);
 }
